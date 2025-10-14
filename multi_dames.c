@@ -29,6 +29,8 @@ typedef struct {
 int jeu_capturer(Jeu *jeu, int i, int j) {
     //On vide la case
     jeu->plateau.pion[i][j] = 0;
+
+    return 1;
 }
 
 int jeu_arreter(Jeu *jeu) {
@@ -38,6 +40,7 @@ int jeu_arreter(Jeu *jeu) {
         jeu->joueur[jeu->joueur_courant].etat = 0;
     }
     
+    return 1;
 }
 
 int jeu_joueur_suivant(Jeu *jeu) {
@@ -46,6 +49,8 @@ int jeu_joueur_suivant(Jeu *jeu) {
 
     //On augmente le tour
     jeu->tour += 1;
+
+    return 1;
 }
 
 int jeu_sauter_vers(Jeu *jeu, int i, int j) {
@@ -63,7 +68,14 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     int pionpris = jeu->plateau.pion[jeu->pion_i + deltax][jeu->pion_j + deltay];
 
     //On actualise les scores
-    switch (pionpris)
+    actualise_score(jeu, pionpris);
+    
+    return 1;
+}
+
+int actualise_score(Jeu *jeu, int pionvalue) {
+
+    switch (pionvalue)
     {
     case 1:
         jeu->joueur[jeu->joueur_courant].score += 1;
@@ -79,15 +91,36 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
         break;
     }
 
+    return 1;
 }
 
 int jeu_saisir_pion(Jeu *jeu, int i, int j) {
+    //On actualise les données du pion dans jeu
     jeu->pion_est_saisi = 1;
     jeu->pion_i = i;
     jeu->pion_j = j;
+
+    return 1;
 }
+
+int jeu_initial_retire_pion(Jeu *jeu, int i, int j) {
+    int pionpris = jeu->plateau.pion[i][j];
+
+    actualise_score(jeu, pionpris);
+    jeu->plateau.pion[i][j] = 0;
+
+    return 1;
+}
+
+
 
 int main(){
     Jeu game;
+
+    for (int i = 0; i < game.nb_joueurs; i++)
+    {
+        //booooriiiinbg
+    }
+    
 }
 
