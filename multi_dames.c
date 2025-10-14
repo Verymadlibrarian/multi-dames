@@ -53,26 +53,6 @@ int jeu_joueur_suivant(Jeu *jeu) {
     return 1;
 }
 
-int jeu_sauter_vers(Jeu *jeu, int i, int j) {
-    int pion = jeu->plateau.pion[jeu->pion_i][jeu->pion_j];
-    //On duplique le pion qui bouge
-    jeu->plateau.pion[i][j] = pion;
-    //On met son ancienne position à 0
-    jeu->plateau.pion[jeu->pion_i][jeu->pion_j] = 0;
-
-    //On calcule le delta entre avant et après pour voir le pion à manger
-    int deltax = i - jeu->pion_i;
-    int deltay = j - jeu->pion_j;
-    
-    //On le mange
-    int pionpris = jeu->plateau.pion[jeu->pion_i + deltax][jeu->pion_j + deltay];
-
-    //On actualise les scores
-    actualise_score(jeu, pionpris);
-    
-    return 1;
-}
-
 int actualise_score(Jeu *jeu, int pionvalue) {
 
     switch (pionvalue)
@@ -93,6 +73,27 @@ int actualise_score(Jeu *jeu, int pionvalue) {
 
     return 1;
 }
+
+int jeu_sauter_vers(Jeu *jeu, int i, int j) {
+    int pion = jeu->plateau.pion[jeu->pion_i][jeu->pion_j];
+    //On duplique le pion qui bouge
+    jeu->plateau.pion[i][j] = pion;
+    //On met son ancienne position à 0
+    jeu->plateau.pion[jeu->pion_i][jeu->pion_j] = 0;
+
+    //On calcule le delta entre avant et après pour voir le pion à manger
+    int deltax = i - jeu->pion_i;
+    int deltay = j - jeu->pion_j;
+    
+    //On le mange
+    int pionpris = jeu->plateau.pion[jeu->pion_i + deltax][jeu->pion_j + deltay];
+
+    //On actualise les scores
+    actualise_score(jeu, pionpris);
+    
+    return 1;
+}
+
 
 int jeu_saisir_pion(Jeu *jeu, int i, int j) {
     //On actualise les données du pion dans jeu
@@ -116,6 +117,7 @@ int jeu_initial_retire_pion(Jeu *jeu, int i, int j) {
 
 int main(){
     Jeu game;
+    game.nb_joueurs = 1;
 
     for (int i = 0; i < game.nb_joueurs; i++)
     {
