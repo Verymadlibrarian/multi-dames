@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define TAILLE 8
-
 
 typedef struct {
     // 0 si vide, 1 si blanc, 2 si rouge et 3 si noir
@@ -38,6 +38,7 @@ int jeu_arreter(Jeu *jeu) {
     {
         //Mise hors-jeu du joueur
         jeu->joueur[jeu->joueur_courant].etat = 0;
+        return 0;
     }
     
     return 1;
@@ -113,16 +114,46 @@ int jeu_initial_retire_pion(Jeu *jeu, int i, int j) {
     return 1;
 }
 
+int jeu_init_board(Jeu *jeu) {
+    int left[3] = {34,20,10};
+    srand(time(NULL));
 
+    for (int i = 0; i < TAILLE; i++)
+    {
+        for (int j = 0; j < TAILLE; j++)
+        {
+            //On prend un int random entre 1 et 3
+            int valeur = (rand() % 3) + 1;
+
+            //On vérifie qu'il en reste
+            while ((left[valeur - 1]) == 0)
+            {
+                valeur = (rand() % 3) + 1;
+            }
+            
+            //Puis on l'assigne
+            left[valeur - 1] -= 1;
+            jeu->plateau.pion[i][j] = valeur;
+        }
+    }
+    return 1;
+}
+
+int jeu_initialisation(Jeu *jeu) {
+    return 1;
+}
 
 int main(){
     Jeu game;
     game.nb_joueurs = 1;
 
-    for (int i = 0; i < game.nb_joueurs; i++)
-    {
-        //booooriiiinbg
+    jeu_init_board(&game);
+    printf("Plateau initial:\n");
+    for (int i = 0; i < TAILLE; i++) {
+        for (int j = 0; j < TAILLE; j++) {
+            printf("%d ", game.plateau.pion[i][j]);
+        }
+        printf("\n");
     }
-    
 }
 
