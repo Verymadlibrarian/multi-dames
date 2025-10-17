@@ -26,6 +26,15 @@ typedef struct {
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
 } Jeu;
 
+void pprint(Jeu *jeu) {
+    for (int i = 0; i < TAILLE; i++) {
+        for (int j = 0; j < TAILLE; j++) {
+            printf("%d ", jeu->plateau.pion[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 int jeu_capturer(Jeu *jeu, int i, int j) {
     //On vide la case
     jeu->plateau.pion[i][j] = 0;
@@ -72,7 +81,7 @@ int actualise_score(Jeu *jeu, int pionvalue) {
         break;
     }
 
-    return 1;
+    return 0;
 }
 
 int jeu_sauter_vers(Jeu *jeu, int i, int j) {
@@ -139,13 +148,43 @@ int jeu_init_board(Jeu *jeu) {
     return 1;
 }
 
+void get_coords(int* x, int* y) {
+    int isitok = 1;
+    do
+    {
+
+        printf("\nCoordoonées (int x) puis (int y) :");
+        scanf("%d %d", x, y);
+
+        isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
+
+    } while (!(isitok));
+    
+}
+
 int jeu_initialisation(Jeu *jeu) {
+    int x, y;
+    for (int i = 0; i < jeu->nb_joueurs; i++)
+    {
+        x = -1;
+        y = -1;
+        
+        get_coords(&x,&y);
+        printf("%d %d",x,y);
+        jeu_initial_retire_pion(jeu, x, y);
+        jeu_joueur_suivant(jeu);
+        pprint(jeu);
+    }
+    
+
     return 1;
 }
 
+
+
 int main(){
     Jeu game;
-    game.nb_joueurs = 1;
+    game.nb_joueurs = 2;
 
     jeu_init_board(&game);
     printf("Plateau initial:\n");
@@ -155,5 +194,10 @@ int main(){
         }
         printf("\n");
     }
+
+    jeu_initialisation(&game);
+
+    //Testing
+
 }
 
