@@ -27,12 +27,14 @@ typedef struct {
 } Jeu;
 
 void pprint(Jeu *jeu) {
+    printf("\n---------\n");
     for (int i = 0; i < TAILLE; i++) {
         for (int j = 0; j < TAILLE; j++) {
             printf("%d ", jeu->plateau.pion[i][j]);
         }
         printf("\n");
     }
+    printf("\n---------");
 }
 
 int jeu_capturer(Jeu *jeu, int i, int j) {
@@ -77,9 +79,10 @@ int actualise_score(Jeu *jeu, int pionvalue) {
         jeu->joueur[jeu->joueur_courant].score += 8;
         break;
     default:
-        printf("something went wrong when giving out point, check pionpris value");
         break;
     }
+
+    printf("\n\n Score de joueur %d : %d", jeu->joueur_courant + 1, jeu->joueur[jeu->joueur_courant].score);
 
     return 0;
 }
@@ -159,7 +162,8 @@ void get_coords(int* x, int* y) {
         isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
 
     } while (!(isitok));
-    
+
+    //Afin que les indices du tableau soient corrects
 }
 
 int jeu_initialisation(Jeu *jeu) {
@@ -168,18 +172,16 @@ int jeu_initialisation(Jeu *jeu) {
     {
         x = -1;
         y = -1;
-        
+
         get_coords(&x,&y);
-        printf("%d %d",x,y);
-        jeu_initial_retire_pion(jeu, x, y);
+        
+        jeu_initial_retire_pion(jeu, x-1, y-1);
         jeu_joueur_suivant(jeu);
         pprint(jeu);
     }
-    
 
     return 1;
 }
-
 
 
 int main(){
@@ -187,13 +189,15 @@ int main(){
     game.nb_joueurs = 2;
 
     jeu_init_board(&game);
-    printf("Plateau initial:\n");
+
+    printf("----------\\ Plateau initial /----------\n");
     for (int i = 0; i < TAILLE; i++) {
         for (int j = 0; j < TAILLE; j++) {
             printf("%d ", game.plateau.pion[i][j]);
         }
         printf("\n");
     }
+
 
     jeu_initialisation(&game);
 
