@@ -151,13 +151,28 @@ int jeu_init_board(Jeu *jeu) {
     return 1;
 }
 
+void get_coords_init(int* x, int* y) {
+    int isitok = 1;
+    do
+    {
+
+        printf("\nCoordoonées (int x) puis (int y) :");
+        scanf("%d %d", y, x);
+
+        isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
+
+    } while (!(isitok));
+
+    //Afin que les indices du tableau soient corrects
+}
+
 void get_coords(int* x, int* y) {
     int isitok = 1;
     do
     {
 
         printf("\nCoordoonées (int x) puis (int y) :");
-        scanf("%d %d", x, y);
+        scanf("%d %d", y, x);
 
         isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
 
@@ -172,8 +187,13 @@ int jeu_initialisation(Jeu *jeu) {
     {
         x = -1;
         y = -1;
+        
+        printf("Tour de mise en place, retirez un pion 1 (Joueur %d) :\n", i+1);
 
-        get_coords(&x,&y);
+        do
+        {
+            get_coords(&x,&y);
+        } while (jeu->plateau.pion[x-1][y-1] != 1);
         
         jeu_initial_retire_pion(jeu, x-1, y-1);
         jeu_joueur_suivant(jeu);
@@ -191,17 +211,44 @@ int main(){
     jeu_init_board(&game);
 
     printf("----------\\ Plateau initial /----------\n");
-    for (int i = 0; i < TAILLE; i++) {
-        for (int j = 0; j < TAILLE; j++) {
-            printf("%d ", game.plateau.pion[i][j]);
-        }
-        printf("\n");
-    }
+    pprint(&game);
 
 
     jeu_initialisation(&game);
 
-    //Testing
+    for (int i = 0; i < game.nb_joueurs; i++)
+    {
+        game.joueur[i].etat = 1;
+        game.joueur[i].score = 0;
+    }
+    game.tour = 0;
+
+    int game_over = 0;
+
+    while (!(game_over))
+    {
+        for (int i = 0; i < game.nb_joueurs; i++)
+        {
+            if (game.joueur[i].etat)
+            {
+                int x, y;
+                game.pion_est_saisi = 0;
+                game.joueur_courant = i;
+                game.tour += 1;
+
+                pprint(&game);
+                printf("Saisir quel pion ? (int x) puis (int y) :\n", game.joueur_courant + 1);
+                get_coords(&x, &y);
+                
+                jeu_saisir_pion(&game, x - 1, y - 1);
+
+
+            }
+            
+        }
+        
+    }
+    
 
 }
 
