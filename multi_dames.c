@@ -26,7 +26,18 @@ typedef struct {
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
 } Jeu;
 
+void joueurs_affiche(Jeu *jeu) {
+    for (int i = 0; i < jeu->nb_joueurs; i++) printf("J%d : %dpts | ",i+1,(jeu->joueur)[i].score);
+    printf("\n");
+}
+
 void jeu_affiche(Jeu *jeu) {
+
+    if ((jeu->tour)) printf("----------\\ Plateau tour %d /----------\n",jeu->tour);
+    else printf("----------\\ Plateau initial /----------\n");
+    printf("Score actuels : ");
+    joueurs_affiche(jeu);
+    printf("Tour du Joueur %d",jeu->joueur_courant+1);
     printf("\n---------\n");
     printf("  x1 2 3 4 5 6 7 8\n");
     printf("y  | | | | | | | |\n");
@@ -62,9 +73,6 @@ int jeu_joueur_suivant(Jeu *jeu) {
     //On change de joueur
     jeu->joueur_courant = (jeu->joueur_courant + 1) % jeu->nb_joueurs;
 
-    //On augmente le tour
-    jeu->tour += 1;
-
     return 1;
 }
 
@@ -94,12 +102,13 @@ int actualise_score(Jeu *jeu, int pionvalue) {
         break;
     }
 
-    printf("\n\n ||jeu|| Score de joueur %d : %d", jeu->joueur_courant + 1, jeu->joueur[jeu->joueur_courant].score);
+    // printf("\n\n ||jeu|| Score de joueur %d : %d", jeu->joueur_courant + 1, jeu->joueur[jeu->joueur_courant].score);
 
     return 0;
 }
 
 int jeu_sauter_vers(Jeu *jeu, int i, int j) {
+    printf("\n||jeu|| Saut en %d %d\n", i+1, j+1);
     // Vérifier coordonnées et pion saisi optionnellement (non ajouté ici)
     int pion = jeu->plateau.pion[jeu->pion_i][jeu->pion_j];
 
@@ -107,11 +116,11 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     int mi = (jeu->pion_i + i) / 2;
     int mj = (jeu->pion_j + j) / 2;
 
-    printf("||DEBUG|| Pion i : %d Pion j : %d\n", jeu->pion_i, jeu->pion_j);
-    printf("||DEBUG|| Coords du pion qui va se FAIRE BOUFFER : %d %d\n", mi, mj);
+    // printf("||DEBUG|| Pion i : %d Pion j : %d\n", jeu->pion_i, jeu->pion_j);
+    // printf("||DEBUG|| Coords du pion qui va se FAIRE BOUFFER : %d %d\n", mi, mj);
 
     int pionpris = jeu->plateau.pion[mi][mj];
-    printf("||DEBUG|| Valeur pion mangé : %d\n", pionpris);
+    // printf("||DEBUG|| Valeur pion mangé : %d\n", pionpris);
 
     // déplacer le pion (mettre destination puis vider ancienne case)
     jeu->plateau.pion[i][j] = pion;
@@ -121,6 +130,8 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     actualise_score(jeu, pionpris);
     jeu->plateau.pion[mi][mj] = 0;
 
+    jeu->pion_i = i;
+    jeu->pion_j = j;
     return 1;
 }
 
@@ -172,7 +183,7 @@ void get_coords_init(int* x, int* y) {
     do
     {
 
-        printf("\n||jeu|| Coordoonées (int x) puis (int y) :");
+        printf("\n||jeu|| Coordoonées (int)(x,y) :");
         scanf("%d %d", y, x);
 
         isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
@@ -187,12 +198,12 @@ void get_coords(int* x, int* y) {
     do
     {
 
-        printf("\n||jeu|| Coordoonées (int x) puis (int y) :");
+        printf("\n||jeu|| Coordoonées (int)(x,y) :");
         scanf("%d %d", y, x);
 
-        isitok = 0<*x && *x<TAILLE && 0<*y && *y<=TAILLE;
+        isitok = 0<*x && *x<TAILLE+1 && 0<*y && *y<=TAILLE+1;
 
-    } while (!(isitok));
+    } while (!(isitok)); 
 
     //Afin que les indices du tableau soient corrects
 }
@@ -204,9 +215,10 @@ int jeu_initialisation(Jeu *jeu) {
         jeu->joueur_courant = i;
         x = -1;
         y = -1;
+        jeu_affiche(jeu);
         
-        printf("\n||jeu|| Tour de mise en place, retirez un pion 1 (Joueur %d) :\n", i+1);
-
+        printf("\n||jeu|| Tour de mise en place, retirez un pion :\n");// (Joueur %d) :\n", i+1);
+        
         do
         {
             get_coords(&x,&y);
@@ -214,28 +226,28 @@ int jeu_initialisation(Jeu *jeu) {
         
         jeu_initial_retire_pion(jeu, x-1, y-1);
         jeu_joueur_suivant(jeu);
-        jeu_affiche(jeu);
     }
 
     return 1;
 }
 
-int jeu_peut_sauter(Jeu *jeu, int i, int j) {
+int jeu_peut_sauter(Jeu *jeu, int i,__attribute__((__unused__)) int j) {
     //Vérifie si un saut est possible pour le pion saisi
-    int di[4] = {-2, -2, 2, 2};
-    int dj[4] = {-2, 2, -2, 2};
+    (void)i;
+    int di[8] = {-2,-2, 2, 2,-2, 0, 2, 0};
+    int dj[8] = {-2, 2,-2, 2, 0,-2, 0, 2};
 
-    for (int index = 0; index < 4; index++)
-    {
+    for (int index = 0; index < 8; index++)
+    {   
         int ni = jeu->pion_i + di[index];
         int nj = jeu->pion_j + dj[index];
 
         //Vérifie que la case d'arrivée est dans le plateau
         if (ni >= 0 && ni < TAILLE && nj >= 0 && nj < TAILLE)
-        {
+        {   
             //Vérifie que la case d'arrivée est vide et qu'il y a un pion à manger
             if (jeu->plateau.pion[ni][nj] == 0)
-            {
+            {   
                 int mi = (jeu->pion_i + ni) / 2;
                 int mj = (jeu->pion_j + nj) / 2;
 
@@ -316,12 +328,13 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
 int main(){
     Jeu game;
     game.nb_joueurs = 2;
+    game.tour = 0;
+
+    //On regarde si le nombre de joueurs est inadéquoi.
+    if (2 > game.nb_joueurs || 4 < game.nb_joueurs) return 1;
 
     jeu_init_board(&game);
-
-    printf("----------\\ Plateau initial /----------\n");
-    jeu_affiche(&game);
-
+    
     for (int i = 0; i < game.nb_joueurs; i++)
     {
         game.joueur[i].etat = 1;
@@ -329,17 +342,16 @@ int main(){
     }
 
     jeu_initialisation(&game);
-
     
-    game.tour = 0;
     int game_over = 0;
-
+    
     while (!(game_over))
     {
+        game.tour += 1;
         for (int i = 0; i < game.nb_joueurs; i++)
         {
-            if (jeu_peut_jouer(&game))
-            {   printf("\n||DEBUG|| Joueur %d peut jouer\n", i+1);
+            if (jeu_peut_jouer(&game)){
+            //    printf("\n||DEBUG|| Joueur %d peut jouer\n", i+1);
                 if (game.joueur[i].etat)
                 {
                     int x, y;
@@ -353,22 +365,24 @@ int main(){
                     do
                     {
                         get_coords(&x, &y);
-                        printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
-                        printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
-                        printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
+                        // printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
+                        // printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
+                        // printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
                     } while (game.plateau.pion[x - 1][y - 1] == 0 || !jeu_peut_sauter(&game, x - 1, y - 1));
                     
                     jeu_saisir_pion(&game, x - 1, y - 1);
 
-                    printf("\n||jeu|| Vers où sauter ? (int)(x,y) :\n");
-                    
-                    do
-                    {
-                        get_coords(&x, &y);
-                        printf("\n||DEBUG|| Vérification saut vers %d,%d\n", y-1, x-1);
-                    } while (!pion_saut_autorise(&game, x - 1, y - 1));
-                    
-                    jeu_sauter_vers(&game, x - 1, y - 1);
+                    do {
+                        jeu_affiche(&game);
+                        printf("\n||jeu|| Vers où sauter ? (int)(x,y) :\n");
+                        do
+                        {
+                            get_coords(&x, &y);
+                            // printf("\n||DEBUG|| Vérification saut vers %d,%d\n", y-1, x-1);
+                        } while (!pion_saut_autorise(&game, x - 1, y - 1));
+                        jeu_sauter_vers(&game, x - 1, y - 1);
+
+                    } while (jeu_peut_sauter(&game, x - 1, y - 1));
 
                 }
             } else {
@@ -380,7 +394,6 @@ int main(){
                 
             }
             
-            game.tour += 1;
             
         }
         
