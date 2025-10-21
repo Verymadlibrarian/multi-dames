@@ -201,7 +201,7 @@ int jeu_initialisation(Jeu *jeu) {
     int x, y;
     for (int i = 0; i < jeu->nb_joueurs; i++)
     {
-        jeu->joueur_courant=i;
+        jeu->joueur_courant = i;
         x = -1;
         y = -1;
         
@@ -322,15 +322,15 @@ int main(){
     printf("----------\\ Plateau initial /----------\n");
     jeu_affiche(&game);
 
-    
     for (int i = 0; i < game.nb_joueurs; i++)
     {
         game.joueur[i].etat = 1;
         game.joueur[i].score = 0;
     }
-    
-        jeu_initialisation(&game);
 
+    jeu_initialisation(&game);
+
+    
     game.tour = 0;
     int game_over = 0;
 
