@@ -26,9 +26,12 @@ typedef struct {
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
 } Jeu;
 
-void pprint(Jeu *jeu) {
+void jeu_affiche(Jeu *jeu) {
     printf("\n---------\n");
+    printf("  x1 2 3 4 5 6 7 8\n");
+    printf("y  | | | | | | | |\n");
     for (int i = 0; i < TAILLE; i++) {
+        printf("%d— ",i+1);
         for (int j = 0; j < TAILLE; j++) {
             printf("%d ", jeu->plateau.pion[i][j]);
         }
@@ -121,7 +124,6 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     return 1;
 }
 
-
 int jeu_saisir_pion(Jeu *jeu, int i, int j) {
     //On actualise les données du pion dans jeu
     jeu->pion_est_saisi = 1;
@@ -211,7 +213,7 @@ int jeu_initialisation(Jeu *jeu) {
         
         jeu_initial_retire_pion(jeu, x-1, y-1);
         jeu_joueur_suivant(jeu);
-        pprint(jeu);
+        jeu_affiche(jeu);
     }
 
     return 1;
@@ -289,7 +291,7 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
     int deltay = j - jeu->pion_j;
 
     //Le saut doit être de 2 cases dans une direction
-    if ((abs(deltax) == 2 && deltay == 0) || (abs(deltay) == 2 && deltax == 0) || (abs(deltax) == 2 && abs(deltay) == 2))
+    if ((abs(deltax) == 2 && deltay == 0) || (deltax == 0 && abs(deltay) == 2) || (abs(deltax) == 2 && abs(deltay) == 2))
     {
         //Vérifie que la case d'arrivée est vide
         if (jeu->plateau.pion[i][j] == 0)
@@ -308,6 +310,8 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
     return 0; // Le saut n'est pas autorisé
 }
 
+
+
 int main(){
     Jeu game;
     game.nb_joueurs = 2;
@@ -315,7 +319,7 @@ int main(){
     jeu_init_board(&game);
 
     printf("----------\\ Plateau initial /----------\n");
-    pprint(&game);
+    jeu_affiche(&game);
 
 
     jeu_initialisation(&game);
@@ -325,8 +329,8 @@ int main(){
         game.joueur[i].etat = 1;
         game.joueur[i].score = 0;
     }
-    game.tour = 0;
 
+    game.tour = 0;
     int game_over = 0;
 
     while (!(game_over))
@@ -342,8 +346,8 @@ int main(){
                     game.joueur_courant = i;
                     
 
-                    pprint(&game);
-                    printf("\n||jeu|| Saisir quel pion ? (int x) puis (int y) :\n");
+                    jeu_affiche(&game);
+                    printf("\n||jeu|| Saisir quel pion ? (int)(x,y) :\n");
                     
                     do
                     {
@@ -355,7 +359,7 @@ int main(){
                     
                     jeu_saisir_pion(&game, x - 1, y - 1);
 
-                    printf("\n||jeu|| Vers où sauter ? (int x) puis (int y) :\n");
+                    printf("\n||jeu|| Vers où sauter ? (int)(x,y) :\n");
                     
                     do
                     {
