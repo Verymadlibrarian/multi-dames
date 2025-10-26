@@ -28,6 +28,10 @@ typedef struct {
 
 void joueurs_affiche(Jeu *jeu) {
     for (int i = 0; i < jeu->nb_joueurs; i++) printf("J%d : %dpts | ",i+1,(jeu->joueur)[i].score);
+    printf("\n               ");
+    for (int i = 0; i < jeu->nb_joueurs; i++) 
+    if (jeu->joueur[i].etat == 0) printf(" (a quitte) ");
+    else printf("            ");
     printf("\n");
 }
 
@@ -58,8 +62,15 @@ int jeu_capturer(Jeu *jeu, int i, int j) {
     return 1;
 }
 
+int plus_de_un_joueur(Jeu *jeu) {
+    int n = 0;
+    for (int i = 0; i < jeu->nb_joueurs; i++)
+    if (jeu->joueur[i].etat) n++;
+    return n++ > 1;
+}
+
 int jeu_arreter(Jeu *jeu) {
-    if (jeu->nb_joueurs>1)
+    if (plus_de_un_joueur(jeu))
     {
         //Mise hors-jeu du joueur
         jeu->joueur[jeu->joueur_courant].etat = 0;
@@ -71,7 +82,9 @@ int jeu_arreter(Jeu *jeu) {
 
 int jeu_joueur_suivant(Jeu *jeu) {
     //On change de joueur
+    do {
     jeu->joueur_courant = (jeu->joueur_courant + 1) % jeu->nb_joueurs;
+    } while (!(jeu->joueur[jeu->joueur_courant].etat));
 
     return 1;
 }
@@ -198,10 +211,10 @@ void get_coords(int* x, int* y) {
     do
     {
 
-        printf("\n||jeu|| Coordoonées (int)(x,y) :");
+        printf("\n||jeu|| Coordoonées (int)(x,y) ((0,0) pour arrêter de jouer la manche :");
         scanf("%d %d", y, x);
 
-        isitok = 0<*x && *x<TAILLE+1 && 0<*y && *y<=TAILLE+1;
+        isitok = (0<*x && *x<TAILLE+1 && 0<*y && *y<=TAILLE+1) || (!*x && !*y);
 
     } while (!(isitok)); 
 
@@ -221,7 +234,7 @@ int jeu_initialisation(Jeu *jeu) {
         
         do
         {
-            get_coords(&x,&y);
+            get_coords_init(&x,&y);
         } while (jeu->plateau.pion[x-1][y-1] != 1);
         
         jeu_initial_retire_pion(jeu, x-1, y-1);
@@ -250,6 +263,8 @@ int jeu_peut_sauter(Jeu *jeu, int i,__attribute__((__unused__)) int j) {
             {   
                 int mi = (jeu->pion_i + ni) / 2;
                 int mj = (jeu->pion_j + nj) / 2;
+                printf("\n cas du pion [%d][%d]\n",jeu->pion_i, jeu->pion_j);
+                printf("\n[DEBUG] y:%d x:%d val:%d\n\n",mj,mi,jeu->plateau.pion[mi][mj]);
 
                 if (jeu->plateau.pion[mi][mj] != 0)
                 {
@@ -324,6 +339,11 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
 }
 
 
+void jeu_charger(Jeu *jeu) {
+    return NULL;
+}
+
+
 
 int main(){
     Jeu game;
@@ -360,27 +380,37 @@ int main(){
                     
 
                     jeu_affiche(&game);
-                    printf("\n||jeu|| Saisir quel pion ? (int)(x,y) :\n");
-                    
+                    printf("\n||jeu|| Saisir quel pion ?");
                     do
                     {
-                        get_coords(&x, &y);
-                        // printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
-                        // printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
-                        // printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
-                    } while (game.plateau.pion[x - 1][y - 1] == 0 || !jeu_peut_sauter(&game, x - 1, y - 1));
-                    
-                    jeu_saisir_pion(&game, x - 1, y - 1);
+                        if (!plus_de_un_joueur(&game)) get_coords_init(&x,&y);
+                        else get_coords(&x, &y);
+                        jeu_saisir_pion(&game, x - 1, y - 1);
+                        
+                        printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
+                        printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
+                        printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
+                        printf("\n||DEBUG|| x et y ? %d %d (x && y) : %d\n",x,y,x&&y);
+
+                    } while ((game.plateau.pion[x - 1][y - 1] == 0 || !jeu_peut_sauter(&game, x - 1, y - 1)) 
+                    && ((x && y) || !plus_de_un_joueur(&game)));
+                    //Ligne vérifiant si le pion est vide, si il ne peut pas sauter, si il n'est pas (0,0) et si le joueur peut ou non arrêter.
+
+                    if (!x && !y) jeu_arreter(&game);
 
                     do {
+                        if (!x && !y) break;
                         jeu_affiche(&game);
                         printf("\n||jeu|| Vers où sauter ? (int)(x,y) :\n");
                         do
                         {
-                            get_coords(&x, &y);
+                            get_coords_init(&x, &y); //On utilise init car on ne peut pas entré (0,0) et donc casser le jeu.
                             // printf("\n||DEBUG|| Vérification saut vers %d,%d\n", y-1, x-1);
                         } while (!pion_saut_autorise(&game, x - 1, y - 1));
-                        jeu_sauter_vers(&game, x - 1, y - 1);
+                        if (!x && !y) {
+                            jeu_arreter(&game);
+                            break;
+                        } else jeu_sauter_vers(&game, x - 1, y - 1);
 
                     } while (jeu_peut_sauter(&game, x - 1, y - 1));
 
