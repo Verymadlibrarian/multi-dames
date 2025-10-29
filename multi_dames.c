@@ -375,7 +375,10 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
 
 // de même pour jeu_joueur_suivant qui fonctionne sans problèmes.
 
-void jeu_charger(Jeu *jeu) {
+/* j'avais mal compris le chargement et ecriture dans les consignes, d'où des version fichier.
+Utile pour comprendre comment faire des sauvegardes fichier par contre.
+
+void jeu_charger_file(Jeu *jeu) {
     FILE *file;
 
     file = fopen("savefile.txt","r");
@@ -391,9 +394,24 @@ void jeu_charger(Jeu *jeu) {
         for (int j = 0; j < TAILLE; j++)
             fscanf(file, "%d", &(jeu->plateau.pion[i][j]));
 
+    fclose(file);
+}*/
+
+void jeu_charger(Jeu *jeu) {
+    scanf("%d %d %d", &(jeu->nb_joueurs), &(jeu->tour), &(jeu->joueur_courant));
+
+    for (int i = 0; i < 4; i++)
+        scanf("%d %d", &(jeu->joueur[i].etat), &(jeu->joueur[i].score));
+
+    scanf("%d %d %d", &(jeu->pion_est_saisi), &(jeu->pion_i), &(jeu->pion_j));
+
+    for (int i = 0; i < TAILLE; i++)
+        for (int j = 0; j < TAILLE; j++)
+            scanf("%d", &(jeu->plateau.pion[i][j]));
+
 }
 
-void jeu_ecrire(Jeu *jeu){
+/*void jeu_ecrire_file(Jeu *jeu){
     FILE *file;
 
     file = fopen("savefile.txt","w");
@@ -412,8 +430,22 @@ void jeu_ecrire(Jeu *jeu){
     }
 
     fclose(file);
-}
+}*/
 
+void jeu_ecrire(Jeu *jeu){
+    printf("%d %d %d\n",jeu->nb_joueurs, jeu->tour, jeu->joueur_courant);
+
+    for (int i = 0; i < 4; i++) 
+        printf("%d %d\n", jeu->joueur[i].etat, jeu->joueur[i].score);
+
+    printf("%d %d %d", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
+
+    for (int i = 0; i < TAILLE; i++) {
+        printf("\n");
+        for (int j = 0; j < TAILLE; j++) 
+            printf("%d ", jeu->plateau.pion[i][j]);
+    }
+}
 
 
 
@@ -472,7 +504,6 @@ int main(){
 
                     if (!x && !y) {
                         jeu_arreter(&game);
-                        jeu_ecrire(&game);
                     }
 
                     do {
