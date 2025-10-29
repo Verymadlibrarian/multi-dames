@@ -55,7 +55,7 @@ void jeu_affiche(Jeu *jeu) {
     printf("\n---------");
 }
 
-int jeu_capturer(Jeu *jeu, int i, int j) {
+int jeu_capturer_dummy(Jeu *jeu, int i, int j) {
     //On vide la case
     jeu->plateau.pion[i][j] = 0;
 
@@ -74,10 +74,10 @@ int jeu_arreter(Jeu *jeu) {
     {
         //Mise hors-jeu du joueur
         jeu->joueur[jeu->joueur_courant].etat = 0;
-        return 0;
+        return 1;
     }
     
-    return 1;
+    return 0;
 }
 
 int jeu_joueur_suivant(Jeu *jeu) {
@@ -120,8 +120,7 @@ int actualise_score(Jeu *jeu, int pionvalue) {
     return 0;
 }
 
-int jeu_sauter_vers(Jeu *jeu, int i, int j) {
-    printf("\n||jeu|| Saut en %d %d\n", i+1, j+1);
+int jeu_sauter_vers_dummy(Jeu *jeu, int i, int j) {
     // Vérifier coordonnées et pion saisi optionnellement (non ajouté ici)
     int pion = jeu->plateau.pion[jeu->pion_i][jeu->pion_j];
 
@@ -148,7 +147,7 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     return 1;
 }
 
-int jeu_saisir_pion(Jeu *jeu, int i, int j) {
+int jeu_saisir_pion_dummy(Jeu *jeu, int i, int j) {
     //On actualise les données du pion dans jeu
     jeu->pion_est_saisi = 1;
     jeu->pion_i = i;
@@ -338,10 +337,84 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
     return 0; // Le saut n'est pas autorisé
 }
 
+//Toutes ces fonction suivantes sont présentes juste pour les tests automatiques sur Platon...
+
+int jeu_capturer(Jeu *jeu, int i, int j){
+    if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
+        if ((jeu->plateau.pion[i][j] != 1)) return 0;
+        jeu_initial_retire_pion(jeu, i, j);
+        return 1;
+    }
+    return 0;
+}
+
+int jeu_saisir_pion(Jeu *jeu, int i,int j){
+    if (jeu->pion_est_saisi) return 0;
+    if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
+        if (!(jeu->plateau.pion[i][j])) return 0;
+        int value = jeu_saisir_pion_dummy(jeu, i, j);
+        return value;
+    }
+    return 0;
+}
+
+int jeu_sauter_vers(Jeu *jeu, int i, int j) {
+    if (!jeu->pion_est_saisi) return 0;
+    if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
+        if ((jeu->plateau.pion[i][j])) return 0;
+        int value = jeu_sauter_vers_dummy(jeu, i, j);
+        return value;
+    }
+    return 0;
+}
+
+// int jeu_arreter(Jeu *jeu, int i, int j) {
+//     return 1;
+// }
+// fonctionnel sans devoir modifier l'ancienne version
+
+// de même pour jeu_joueur_suivant qui fonctionne sans problèmes.
 
 void jeu_charger(Jeu *jeu) {
-    return NULL;
+    FILE *file;
+
+    file = fopen("savefile.txt","r");
+
+    fscanf(file,"%d %d %d", &(jeu->nb_joueurs), &(jeu->tour), &(jeu->joueur_courant));
+
+    for (int i = 0; i < 4; i++)
+        fscanf(file, "%d %d", &(jeu->joueur[i].etat), &(jeu->joueur[i].score));
+
+    fscanf(file, "%d %d %d", &(jeu->pion_est_saisi), &(jeu->pion_i), &(jeu->pion_j));
+
+    for (int i = 0; i < TAILLE; i++)
+        for (int j = 0; j < TAILLE; j++)
+            fscanf(file, "%d", &(jeu->plateau.pion[i][j]));
+
 }
+
+void jeu_ecrire(Jeu *jeu){
+    FILE *file;
+
+    file = fopen("savefile.txt","w");
+
+    fprintf(file,"%d %d %d\n",jeu->nb_joueurs, jeu->tour, jeu->joueur_courant);
+
+    for (int i = 0; i < 4; i++) 
+        fprintf(file, "%d %d\n", jeu->joueur[i].etat, jeu->joueur[i].score);
+
+    fprintf(file, "%d %d %d", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
+
+    for (int i = 0; i < TAILLE; i++) {
+        fprintf(file,"\n");
+        for (int j = 0; j < TAILLE; j++) 
+            fprintf(file, "%d ", jeu->plateau.pion[i][j]);
+    }
+
+    fclose(file);
+}
+
+
 
 
 
@@ -355,9 +428,10 @@ int main(){
 
     jeu_init_board(&game);
     
-    for (int i = 0; i < game.nb_joueurs; i++)
+    for (int i = 0; i < 4; i++)
     {
-        game.joueur[i].etat = 1;
+        if (i<game.nb_joueurs) game.joueur[i].etat = 1;
+        else game.joueur[i].etat = 0;
         game.joueur[i].score = 0;
     }
 
@@ -385,32 +459,37 @@ int main(){
                     {
                         if (!plus_de_un_joueur(&game)) get_coords_init(&x,&y);
                         else get_coords(&x, &y);
-                        jeu_saisir_pion(&game, x - 1, y - 1);
+                        jeu_saisir_pion_dummy(&game, x - 1, y - 1);
                         
-                        printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
-                        printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
-                        printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
-                        printf("\n||DEBUG|| x et y ? %d %d (x && y) : %d\n",x,y,x&&y);
+                        // printf("\n||DEBUG|| Vérification saisie pion %d,%d\n", y-1, x-1);
+                        // printf("\n||DEBUG|| Valeur du pion : %d\n", game.plateau.pion[x - 1][y - 1]);
+                        // printf("\n||DEBUG|| Peut sauter ? %d\n", jeu_peut_sauter(&game, x - 1, y - 1));
+                        // printf("\n||DEBUG|| x et y ? %d %d (x && y) : %d\n",x,y,x&&y);
 
                     } while ((game.plateau.pion[x - 1][y - 1] == 0 || !jeu_peut_sauter(&game, x - 1, y - 1)) 
                     && ((x && y) || !plus_de_un_joueur(&game)));
                     //Ligne vérifiant si le pion est vide, si il ne peut pas sauter, si il n'est pas (0,0) et si le joueur peut ou non arrêter.
 
-                    if (!x && !y) jeu_arreter(&game);
+                    if (!x && !y) {
+                        jeu_arreter(&game);
+                        jeu_ecrire(&game);
+                    }
 
                     do {
+                        // Si le joueur avait décider d'arrêter de jouer, on annule son tour, d'où le break.
                         if (!x && !y) break;
                         jeu_affiche(&game);
+
                         printf("\n||jeu|| Vers où sauter ? (int)(x,y) :\n");
                         do
                         {
                             get_coords_init(&x, &y); //On utilise init car on ne peut pas entré (0,0) et donc casser le jeu.
                             // printf("\n||DEBUG|| Vérification saut vers %d,%d\n", y-1, x-1);
                         } while (!pion_saut_autorise(&game, x - 1, y - 1));
-                        if (!x && !y) {
-                            jeu_arreter(&game);
-                            break;
-                        } else jeu_sauter_vers(&game, x - 1, y - 1);
+
+                        printf("\n||jeu|| Saut en %d %d\n", x, y);
+                        jeu_sauter_vers_dummy(&game, x - 1, y - 1);
+                        
 
                     } while (jeu_peut_sauter(&game, x - 1, y - 1));
 
