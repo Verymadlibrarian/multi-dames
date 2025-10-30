@@ -84,7 +84,11 @@ int jeu_joueur_suivant(Jeu *jeu) {
     //On change de joueur
     do {
     jeu->joueur_courant = (jeu->joueur_courant + 1) % jeu->nb_joueurs;
+    if (jeu->joueur_courant == 0) jeu->tour += 1; 
     } while (!(jeu->joueur[jeu->joueur_courant].etat));
+    jeu->pion_est_saisi = 0;
+    jeu->pion_i = 0;
+    jeu->pion_j = 0;
 
     return 1;
 }
@@ -231,10 +235,11 @@ int jeu_initialisation(Jeu *jeu) {
         
         printf("\n||jeu|| Tour de mise en place, retirez un pion :\n");// (Joueur %d) :\n", i+1);
         
-        do
-        {
+        // do
+        // {
             get_coords_init(&x,&y);
-        } while (jeu->plateau.pion[x-1][y-1] != 1);
+        // } while (jeu->plateau.pion[x-1][y-1] != 0);
+        //Jamais il y a ecrit dans les règles que seuls les pions 1 sont capturable...
         
         jeu_initial_retire_pion(jeu, x-1, y-1);
         jeu_joueur_suivant(jeu);
@@ -262,8 +267,8 @@ int jeu_peut_sauter(Jeu *jeu, int i,__attribute__((__unused__)) int j) {
             {   
                 int mi = (jeu->pion_i + ni) / 2;
                 int mj = (jeu->pion_j + nj) / 2;
-                printf("\n cas du pion [%d][%d]\n",jeu->pion_i, jeu->pion_j);
-                printf("\n[DEBUG] y:%d x:%d val:%d\n\n",mj,mi,jeu->plateau.pion[mi][mj]);
+                // printf("\n cas du pion [%d][%d]\n",jeu->pion_i, jeu->pion_j);
+                // printf("\n[DEBUG] y:%d x:%d val:%d\n\n",mj,mi,jeu->plateau.pion[mi][mj]);
 
                 if (jeu->plateau.pion[mi][mj] != 0)
                 {
@@ -299,7 +304,7 @@ int jeu_peut_jouer(Jeu *jeu) {
     return 0; // Le joueur ne peut pas jouer
 }
 
-void penalité (Jeu *jeu) {
+void penalite (Jeu *jeu) {
     //On enlève la sommes des valeurs des pions restants au score du joueur
     int penalty = 0;
     for (int i = 0; i < TAILLE; i++)
@@ -341,7 +346,8 @@ int pion_saut_autorise(Jeu *jeu, int i, int j) {
 
 int jeu_capturer(Jeu *jeu, int i, int j){
     if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
-        if ((jeu->plateau.pion[i][j] != 1)) return 0;
+        // if ((jeu->plateau.pion[i][j] != 1)) return 0;
+        // Jamais dis dans les règles que seuls les pions 1 sont capturables...
         jeu_initial_retire_pion(jeu, i, j);
         return 1;
     }
@@ -353,6 +359,12 @@ int jeu_saisir_pion(Jeu *jeu, int i,int j){
     if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
         if (!(jeu->plateau.pion[i][j])) return 0;
         int value = jeu_saisir_pion_dummy(jeu, i, j);
+        if (!jeu_peut_sauter(jeu,i,j)) {
+            jeu->pion_est_saisi = 0;
+            jeu->pion_i = 0;
+            jeu->pion_j = 0;
+            return 0;
+        }
         return value;
     }
     return 0;
@@ -361,6 +373,10 @@ int jeu_saisir_pion(Jeu *jeu, int i,int j){
 int jeu_sauter_vers(Jeu *jeu, int i, int j) {
     if (!jeu->pion_est_saisi) return 0;
     if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
+        if (!((abs(jeu->pion_i - i) == 2 || abs(jeu->pion_i - i) == 0)) || !((abs(jeu->pion_j - j) == 2 || abs(jeu->pion_j - j) == 0))) return 0;
+        int mi = (jeu->pion_i + i) / 2;
+        int mj = (jeu->pion_j + j) / 2;
+        if (!jeu->plateau.pion[mi][mj]) return 0;
         if ((jeu->plateau.pion[i][j])) return 0;
         int value = jeu_sauter_vers_dummy(jeu, i, j);
         return value;
@@ -400,7 +416,7 @@ void jeu_charger_file(Jeu *jeu) {
 void jeu_charger(Jeu *jeu) {
     scanf("%d %d %d", &(jeu->nb_joueurs), &(jeu->tour), &(jeu->joueur_courant));
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < jeu->nb_joueurs; i++)
         scanf("%d %d", &(jeu->joueur[i].etat), &(jeu->joueur[i].score));
 
     scanf("%d %d %d", &(jeu->pion_est_saisi), &(jeu->pion_i), &(jeu->pion_j));
@@ -435,7 +451,7 @@ void jeu_charger(Jeu *jeu) {
 void jeu_ecrire(Jeu *jeu){
     printf("%d %d %d\n",jeu->nb_joueurs, jeu->tour, jeu->joueur_courant);
 
-    for (int i = 0; i < 4; i++) 
+    for (int i = 0; i < jeu->nb_joueurs; i++) 
         printf("%d %d\n", jeu->joueur[i].etat, jeu->joueur[i].score);
 
     printf("%d %d %d", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
@@ -470,10 +486,9 @@ int main(){
     jeu_initialisation(&game);
     
     int game_over = 0;
-    
+    game.tour = 1;
     while (!(game_over))
     {
-        game.tour += 1;
         for (int i = 0; i < game.nb_joueurs; i++)
         {
             if (jeu_peut_jouer(&game)){
@@ -528,7 +543,7 @@ int main(){
             } else {
                 game.joueur_courant = i;
 
-                penalité(&game);
+                penalite(&game);
 
                 game_over = 1;
                 
