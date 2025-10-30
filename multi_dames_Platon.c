@@ -26,6 +26,8 @@ typedef struct {
     int pion_i, pion_j; // la ligne et colonne du pion saisi (0 sinon)
 } Jeu;
 
+int abs();
+
 void jeu_charger(Jeu *jeu) {
     scanf("%d %d %d", &(jeu->nb_joueurs), &(jeu->tour), &(jeu->joueur_courant));
 
@@ -117,20 +119,6 @@ int actualise_score(Jeu *jeu, int pionvalue) {
     return 0;
 }
 
-void jeu_ecrire(Jeu *jeu){
-    printf("%d %d %d\n",jeu->nb_joueurs, jeu->tour, jeu->joueur_courant);
-
-    for (int i = 0; i < jeu->nb_joueurs; i++) 
-        printf("%d %d\n", jeu->joueur[i].etat, jeu->joueur[i].score);
-
-    printf("%d %d %d", jeu->pion_est_saisi, jeu->pion_i, jeu->pion_j);
-
-    for (int i = 0; i < TAILLE; i++) {
-        printf("\n");
-        for (int j = 0; j < TAILLE; j++) 
-            printf("%d ", jeu->plateau.pion[i][j]);
-    }
-}
 
 int jeu_initial_retire_pion(Jeu *jeu, int i, int j) {
     int pionpris = jeu->plateau.pion[i][j];
@@ -244,5 +232,44 @@ int jeu_sauter_vers(Jeu *jeu, int i, int j) {
         int value = jeu_sauter_vers_dummy(jeu, i, j);
         return value;
     }
+    return 0;
+}
+
+void joueurs_affiche(Jeu *jeu) {
+    for (int i = 0; i < jeu->nb_joueurs; i++) printf("J%d : %dpts | ",i+1,(jeu->joueur)[i].score);
+    printf("\n               ");
+    for (int i = 0; i < jeu->nb_joueurs; i++) 
+    if (jeu->joueur[i].etat == 0) printf(" (a quitte) ");
+    else printf("            ");
+    printf("\n");
+}
+
+void jeu_affiche(Jeu *jeu) {
+
+    if ((jeu->tour)) printf("----------\\ Plateau tour %d /----------\n",jeu->tour);
+    else printf("----------\\ Plateau initial /----------\n");
+    printf("Score actuels : ");
+    joueurs_affiche(jeu);
+    printf("Tour du Joueur %d",jeu->joueur_courant+1);
+    printf("\n---------\n");
+    printf("  x1 2 3 4 5 6 7 8\n");
+    printf("y  | | | | | | | |\n");
+    for (int i = 0; i < TAILLE; i++) {
+        printf("%d— ",i+1);
+        for (int j = 0; j < TAILLE; j++) {
+            printf("%d ", jeu->plateau.pion[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n---------");
+}
+
+int main()
+{
+    Jeu game;
+    jeu_charger(&game);
+    jeu_affiche(&game);
+    jeu_capturer(&game, 2, 2);
+    jeu_affiche(&game);
     return 0;
 }
