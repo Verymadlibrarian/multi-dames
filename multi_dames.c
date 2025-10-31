@@ -358,14 +358,14 @@ int jeu_saisir_pion(Jeu *jeu, int i,int j){
     if (jeu->pion_est_saisi) return 0;
     if (i >= 0 && i < TAILLE && j >= 0 && j < TAILLE) {
         if (!(jeu->plateau.pion[i][j])) return 0;
-        int value = jeu_saisir_pion_dummy(jeu, i, j);
+        jeu_saisir_pion_dummy(jeu, i, j);
         if (!jeu_peut_sauter(jeu,i,j)) {
             jeu->pion_est_saisi = 0;
             jeu->pion_i = 0;
             jeu->pion_j = 0;
             return 0;
         }
-        return value;
+        return 1;
     }
     return 0;
 }
