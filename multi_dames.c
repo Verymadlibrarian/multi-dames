@@ -468,7 +468,12 @@ void jeu_ecrire(Jeu *jeu){
 
 int main(){
     Jeu game;
-    game.nb_joueurs = 2;
+    do
+    {
+        printf("Choisissez le nombre de joueur (entre 2 et 4 inclus) : ");
+        scanf("%d", &(game.nb_joueurs));
+    } while (game.nb_joueurs < 2 || game.nb_joueurs > 4);
+    
     game.tour = 0;
 
     //On regarde si le nombre de joueurs est inadéquoi.
@@ -501,7 +506,7 @@ int main(){
                     
 
                     jeu_affiche(&game);
-                    printf("\n||jeu|| Saisir quel pion ?");
+                    printf("\n||jeu|| Saisir quel pion ?\n");
                     do
                     {
                         if (!plus_de_un_joueur(&game)) get_coords_init(&x,&y);
