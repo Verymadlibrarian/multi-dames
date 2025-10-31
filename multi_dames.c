@@ -461,6 +461,7 @@ void jeu_ecrire(Jeu *jeu){
         for (int j = 0; j < TAILLE; j++) 
             printf("%d ", jeu->plateau.pion[i][j]);
     }
+    printf("\n");
 }
 
 
